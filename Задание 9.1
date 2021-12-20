@@ -1,0 +1,97 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace WinFormsApp9_g_1
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void buttonPickFolder_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog();
+
+                folderBrowserDialog.ShowDialog();
+
+                labelPickedPath.Text = folderBrowserDialog.SelectedPath;
+            }
+            catch
+            {
+                labelPickedPath.Text = "please pick folder";
+            }
+        }
+
+        private void textBoxFileName_TextChanged(object sender, EventArgs e)
+        {
+            ProcessFile();
+        }
+
+        private void textBoxSequenceLength_TextChanged(object sender, EventArgs e)
+        {
+            ProcessFile();
+        }
+        private void ProcessFile()
+        {
+            try
+            {
+
+                int n = int.Parse(textBoxSequenceLength.Text);
+
+                byte[] values = new byte[n * 8];
+
+                for (int i = 1; i < n + 1; i++)
+                {
+                    Array.Copy(BitConverter.GetBytes(1 / (double)i), 0, values, (i - 1) * 8, 8);
+                }
+
+                FileStream fS = File.Create($"{labelPickedPath.Text}/{textBoxFileName.Text}");
+
+                fS.Write(values, 0, values.Length);
+                fS.Close();
+
+                byte[] readenData = File.ReadAllBytes($"{labelPickedPath.Text}/{textBoxFileName.Text}");
+
+                double[] readenValues = new double[n];
+
+                StringBuilder sBHexFormat = new StringBuilder();
+
+                for (int i = 0; i < n; i++)
+                {
+                    readenValues[i] = BitConverter.ToDouble(readenData, i * 8);
+                    sBHexFormat.Append($"{BitConverter.ToString(readenData)}\n");
+                }
+
+                StringBuilder sBDoubleFormat = new StringBuilder();
+
+                for (int i = 0; i < n; i++)
+                {
+                    if ((i + 1) % 3 == 0)
+                    {
+                        sBDoubleFormat.Append($"#{i + 1} : {readenValues[i].ToString()}\n");
+                    }
+                }
+
+                richTextBoxDouble.Text = sBDoubleFormat.ToString();
+                richTextBoxHex.Text = sBHexFormat.ToString();
+            }
+            catch
+            {
+                richTextBoxDouble.Text = "some error try again";
+                richTextBoxHex.Text = "some error try again";
+            }
+        }
+    }
+}
